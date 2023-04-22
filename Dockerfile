@@ -1,11 +1,18 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && \
+    apt-get upgrade -y
+
+RUN apt install -y python3
+
+RUN apt install -y wget build-essential libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev
+
+RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y \
-        wget apt-utils lsb-core cmake git \
+        apt-utils lsb-core cmake git \
         libopencv-dev \
         protobuf-compiler \
         libprotobuf-dev \
@@ -14,6 +21,7 @@ RUN apt-get update -y && \
         hdf5-tools \
         libhdf5-dev \
         libatlas-base-dev
+        
 
 RUN git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose.git
 

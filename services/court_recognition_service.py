@@ -25,12 +25,14 @@ class CourtRecognitionService:
             vertical_lines = self.__get_vertical_lines(filtered_lines)
             top_left, top_right, bottom_left, bottom_right = self.__get_corners_from_lines(vertical_lines, width)
 
-            print(top_left, top_right, bottom_left, bottom_right)
             is_court = self.__is_actual_court(height, width, bottom_left, top_left, bottom_right, top_right)
             if not is_court:
                 return None
 
-            return [top_left, top_right, bottom_left, bottom_right]
+            # Normalize the court to 0-1 interval
+            court = [top_left, top_right, bottom_left, bottom_right]
+            court = [[corner[0] / width, corner[1] / height] for corner in court]
+            return court
         except Exception as e:
             print('detect_corners failed on:')
             print(e)
