@@ -3,8 +3,8 @@ import re
 import uuid
 import cv2
 import numpy as np
-from .openpose_service import OpenPoseService
-from .stroke_recognition_manager import StrokeRecognitionManager
+from .pose_extraction.pose_extraction_service import PoseExtractionService
+from .stroke_recognition.stroke_recognition_manager_factory import StrokeRecognitionManagerFactory
 
 class VideoAnalyzer:
     MAX_QUEUE_SIZE = 4
@@ -13,35 +13,43 @@ class VideoAnalyzer:
     ]
     LEFT_LEG_JOINT = 11
     RIGHT_LEG_JOINT = 14
-    COURT_SPACE_DIMENSIONS = (100, 100)
+    COURT_SPACE_DIMENSIONS = (1, 1)
 
-    def __init__(self, openpose_service: OpenPoseService, encoded_video: str, court_coordinates: list):
-        self.openpose_service = openpose_service
+    def __init__(
+            self,
+            pose_extraction_service: PoseExtractionService,
+            stroke_recognition_manager_factor: StrokeRecognitionManagerFactory,
+            encoded_video: str,
+            court_coordinates: list
+    ):
+        self.pose_extraction_service = pose_extraction_service
         self.encoded_video = encoded_video
-        self.top_player_stroke_recognition_manager = StrokeRecognitionManager()
-        self.bottom_player_stroke_recognition_manager = StrokeRecognitionManager()
+        self.top_player_stroke_recognition_manager = stroke_recognition_manager_factor.create()
+        self.bottom_player_stroke_recognition_manager = stroke_recognition_manager_factor.create()
         self.court_transformation_matrix = self.__get_court_space_transformation_matrix(court_coordinates)
 
     def analyze_video(self):
         video_capture = self.__load_video_capture_from_base64(self.encoded_video)
 
-        result = []
+        fps = video_capture.get(cv2.CAP_PROP_FPS)
+
+        players_data = []
 
         success, frame = video_capture.read()
 
         while success:
-            poses = self.openpose_service.get_players_from_frame(frame)
+            poses = self.pose_extraction_service.get_players_from_frame(frame)
 
             top_pose = poses.get('top')
             bottom_pose = poses.get('bottom')
 
             stroke_top_player = self.top_player_stroke_recognition_manager.handle_stroke(top_pose)
-            stroke_bottom_player = self.top_player_stroke_recognition_manager.handle_stroke(bottom_pose)
+            stroke_bottom_player = self.bottom_player_stroke_recognition_manager.handle_stroke(bottom_pose)
 
-            position_top_player = self.__get_player_position(top_pose)
-            position_bottom_player = self.__get_player_position(bottom_pose)
+            position_top_player = self.__get_player_position(top_pose) if self.court_transformation_matrix is not None else None
+            position_bottom_player = self.__get_player_position(bottom_pose) if self.court_transformation_matrix is not None else None
 
-            result.append({
+            players_data.append({
                 'top_player': {
                     'position': position_top_player,
                     'stroke': stroke_top_player,
@@ -56,8 +64,12 @@ class VideoAnalyzer:
 
             success, image = video_capture.read()
 
+
         video_capture.release()
-        return result
+        return {
+            'players_data': players_data,
+            'fps': fps
+        }
 
     def __load_video_capture_from_base64(self, encoded_video) -> cv2.VideoCapture:
         mime_type = self.__get_mime_type(encoded_video)
@@ -89,6 +101,9 @@ class VideoAnalyzer:
         return data_without_prefix.split(';')[0]
 
     def __get_court_space_transformation_matrix(self, court_coordinates):
+        if court_coordinates is None:
+            return None
+
         court_space_corners = []
         for height_offset in [0, 1]:
             for width_offset in [0, 1]:
@@ -103,8 +118,8 @@ class VideoAnalyzer:
         d = self.court_transformation_matrix[2, 0] * point[0] + self.court_transformation_matrix[2, 1] * point[1] + self.court_transformation_matrix[2, 2]
 
         return (
-            int((self.court_transformation_matrix[0, 0] * point[0] + self.court_transformation_matrix[0, 1] * point[1] + self.court_transformation_matrix[0, 2]) / d),
-            int((self.court_transformation_matrix[1, 0] * point[0] + self.court_transformation_matrix[1, 1] * point[1] + self.court_transformation_matrix[1, 2]) / d),
+            ((self.court_transformation_matrix[0, 0] * point[0] + self.court_transformation_matrix[0, 1] * point[1] + self.court_transformation_matrix[0, 2]) / d),
+            ((self.court_transformation_matrix[1, 0] * point[0] + self.court_transformation_matrix[1, 1] * point[1] + self.court_transformation_matrix[1, 2]) / d),
         )
 
 

@@ -3,13 +3,15 @@ from flask import Flask
 from flask import request
 from services.court_recognition_service import CourtRecognitionService
 from services.image_service import ImageService
-from services.openpose_service import OpenPoseService
+from services.pose_extraction.mock_pose_extraction_service import MockPoseExtractionService
 from services.video_analyzer import VideoAnalyzer
-from flask_cors import CORS, cross_origin
+from services.stroke_recognition.stroke_recognition_manager_factory import MockStrokeRecognitionManagerFactory
+from flask_cors import cross_origin
 
 court_recognition_service = CourtRecognitionService()
 image_service = ImageService()
-openpose_service = OpenPoseService()
+pose_extraction_service = MockPoseExtractionService()
+mock_stroke_recognition_manager_factory = MockStrokeRecognitionManagerFactory()
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -33,12 +35,16 @@ def recognize_court():
 @cross_origin()
 def analyze_video():
     json = request.get_json()
+
     encoded_video = json.get('video')
     court_coordinates = json.get('court')
 
-    video_analyzer = VideoAnalyzer(openpose_service, encoded_video, court_coordinates)
+    video_analyzer = VideoAnalyzer(
+        pose_extraction_service,
+        mock_stroke_recognition_manager_factory,
+        encoded_video,
+        court_coordinates
+    )
     analysis_output = video_analyzer.analyze_video()
 
-    return flask.jsonify({
-        'something': 'yes'
-    })
+    return flask.jsonify(analysis_output)

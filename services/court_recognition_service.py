@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import math
 
-
 class CourtRecognitionService:
     MASK_LOWER_THRESHOLD = 180
     MASK_UPPER_THRESHOLD = 255
@@ -157,7 +156,6 @@ class CourtRecognitionService:
 
     def __get_corners_from_lines(self, lines, width):
         x_mid = width // 2
-
 
         top_left = (self.BIG_NUMBER, self.BIG_NUMBER)
         top_right = (self.SMALL_NUMBER, self.BIG_NUMBER)
