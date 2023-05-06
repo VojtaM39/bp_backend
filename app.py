@@ -46,5 +46,6 @@ def analyze_video():
         court_coordinates
     )
     analysis_output = video_analyzer.analyze_video()
+    video_analyzer.teardown()
 
     return flask.jsonify(analysis_output)

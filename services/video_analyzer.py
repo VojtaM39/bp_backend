@@ -2,6 +2,7 @@ import base64
 import re
 import uuid
 import cv2
+import os
 import numpy as np
 from .pose_extraction.pose_extraction_service import PoseExtractionService
 from .stroke_recognition.stroke_recognition_manager_factory import StrokeRecognitionManagerFactory
@@ -23,19 +24,21 @@ class VideoAnalyzer:
             court_coordinates: list
     ):
         self.pose_extraction_service = pose_extraction_service
-        self.encoded_video = encoded_video
         self.top_player_stroke_recognition_manager = stroke_recognition_manager_factor.create()
         self.bottom_player_stroke_recognition_manager = stroke_recognition_manager_factor.create()
         self.court_transformation_matrix = self.__get_court_space_transformation_matrix(court_coordinates)
 
-    def analyze_video(self):
-        video_capture = self.__load_video_capture_from_base64(self.encoded_video)
+        self.video_capture = None
+        self.tmp_file_name = None
 
-        fps = video_capture.get(cv2.CAP_PROP_FPS)
+        self.load_video_capture_from_base64(encoded_video)
+
+    def analyze_video(self):
+        fps = self.video_capture.get(cv2.CAP_PROP_FPS)
 
         players_data = []
 
-        success, frame = video_capture.read()
+        success, frame = self.video_capture.read()
 
         while success:
             poses = self.pose_extraction_service.get_players_from_frame(frame)
@@ -62,29 +65,31 @@ class VideoAnalyzer:
                 }
             })
 
-            success, image = video_capture.read()
+            success, image = self.video_capture.read()
 
-
-        video_capture.release()
+        self.video_capture.release()
         return {
             'players_data': players_data,
             'fps': fps
         }
 
-    def __load_video_capture_from_base64(self, encoded_video) -> cv2.VideoCapture:
+    def load_video_capture_from_base64(self, encoded_video) -> cv2.VideoCapture:
         mime_type = self.__get_mime_type(encoded_video)
         if mime_type not in self.ALLOWED_MIME_TYPES:
             raise Exception('Uploaded video does not have correct type')
 
         sanitized_encoded_data = encoded_video.split(',')[1]
         extension = mime_type.split('/')[1]
-        tmp_file_name = f'./{uuid.uuid4()}.{extension}'
+        self.tmp_file_name = f'./{uuid.uuid4()}.{extension}'
 
-        tmp_file = open(tmp_file_name, 'wb')
+        tmp_file = open(self.tmp_file_name, 'wb')
         tmp_file.write(base64.b64decode(sanitized_encoded_data))
         tmp_file.close()
 
-        return cv2.VideoCapture(tmp_file_name)
+        self.video_capture = cv2.VideoCapture(self.tmp_file_name)
+
+    def teardown(self):
+        os.remove(self.tmp_file_name)
 
     def __get_player_position(self, pose):
         left_leg = pose[self.LEFT_LEG_JOINT]
