@@ -26,7 +26,7 @@ class MovenetPoseExtractionService(PoseExtractionService):
             'bottom': self.__transform_to_relative(frame, bottom_player),
         }
 
-    def __transform_to_relative(self, pose, frame):
+    def __transform_to_relative(self, frame, pose):
         y, x, _ = frame.shape
         return [[point[0] / x, point[1] / y] for point in pose]
 
