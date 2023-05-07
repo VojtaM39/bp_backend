@@ -7,7 +7,7 @@ from badminton_cv_utils.utils.pose_utils import get_normalized_pose
 
 class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
     MAX_QUEUE_SIZE = 10
-    DENSE_MODEL_PATH = '~/models/dense_model_stroke_recognition'
+    DENSE_MODEL_PATH = '/home/user/models/dense_model_stroke_recognition'
 
     def __init__(self):
         pass
@@ -15,6 +15,9 @@ class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
         self.queue = deque()
 
     def handle_stroke(self, pose):
+        if pose is None:
+            return
+
         self.queue.append(pose)
 
         if len(self.queue) < self.MAX_QUEUE_SIZE:
