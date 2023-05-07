@@ -22,26 +22,21 @@ class MovenetPoseExtractionService(PoseExtractionService):
         top_player = get_top_person(width, keypoints, bottom_player)
 
         return {
-            'top': bottom_player,
-            'bottom': top_player
+            'top': self.__transform_to_relative(frame, top_player),
+            'bottom': self.__transform_to_relative(frame, bottom_player),
         }
 
-    def __get_people_keypoints(self, network_output):
-        keypoints = []
-        for human in network_output:
-            pose = []
-            for i in range(len(human)):
-                pose.append((int(human[i][0]), int(human[i][1])))
-            keypoints.append(pose)
-        return keypoints
+    def __transform_to_relative(self, pose, frame):
+        y, x, _ = frame.shape
+        return [[point[0] / x, point[1] / y] for point in pose]
 
-    def __normalize_keypoints(self, frame, keypoints_with_scores):
+    def __get_people_keypoints(self, frame, network_output):
         y, x, _ = frame.shape
         people = []
-        for person in keypoints_with_scores:
-            person = self.__normalize_pose(person)
-            person = [[int(point[1] * x), int(point[0] * y)] for point in person]
-            people.append(person)
+        for person in network_output:
+          person = self.__normalize_pose(person)
+          person = [[int(point[1] * x), int(point[0] * y)] for point in person]
+          people.append(person)
         return people
 
     def __normalize_pose(self, pose):
