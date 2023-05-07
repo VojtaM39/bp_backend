@@ -15,7 +15,7 @@ class MovenetPoseExtractionService(PoseExtractionService):
 
         results = self.movenet(input_img)
         keypoints_with_scores = results['output_0'].numpy()[:, :, :51].reshape((6, 17, 3))
-        keypoints = self.__get_people_keypoints(keypoints_with_scores)
+        keypoints = self.__get_people_keypoints(frame, keypoints_with_scores)
 
         _, width, _ = frame.shape
         bottom_player = get_bottom_person(width, keypoints)
