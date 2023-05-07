@@ -65,7 +65,7 @@ class VideoAnalyzer:
                 }
             })
 
-            success, image = self.video_capture.read()
+            success, frame = self.video_capture.read()
 
         self.video_capture.release()
         return {
