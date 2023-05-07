@@ -3,14 +3,14 @@ from flask import Flask
 from flask import request
 from services.court_recognition_service import CourtRecognitionService
 from services.image_service import ImageService
-from services.pose_extraction.mock_pose_extraction_service import MockPoseExtractionService
+from services.pose_extraction.movenet_pose_extraction_service import MovenetPoseExtractionService
 from services.video_analyzer import VideoAnalyzer
 from services.stroke_recognition.stroke_recognition_manager_factory import MockStrokeRecognitionManagerFactory
 from flask_cors import cross_origin
 
 court_recognition_service = CourtRecognitionService()
 image_service = ImageService()
-pose_extraction_service = MockPoseExtractionService()
+pose_extraction_service = MovenetPoseExtractionService()
 mock_stroke_recognition_manager_factory = MockStrokeRecognitionManagerFactory()
 
 app = Flask(__name__)
