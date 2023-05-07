@@ -27,6 +27,9 @@ class MovenetPoseExtractionService(PoseExtractionService):
         }
 
     def __transform_to_relative(self, frame, pose):
+        if pose is None:
+            return None
+
         y, x, _ = frame.shape
         return [[point[0] / x, point[1] / y] for point in pose]
 
