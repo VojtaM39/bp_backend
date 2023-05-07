@@ -92,6 +92,9 @@ class VideoAnalyzer:
         os.remove(self.tmp_file_name)
 
     def __get_player_position(self, pose):
+        if pose is None:
+            return None
+
         left_leg = pose[self.LEFT_LEG_JOINT]
         right_leg = pose[self.RIGHT_LEG_JOINT]
 
