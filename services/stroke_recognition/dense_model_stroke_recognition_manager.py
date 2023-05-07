@@ -39,5 +39,5 @@ class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
 
         input = tf.reshape(np.array(input), shape=(1, len(input)))
         pred = self.model(input, training=False)
-        return np.argmax(pred)
+        return int(np.argmax(pred))
 
