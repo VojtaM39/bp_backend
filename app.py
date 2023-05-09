@@ -20,11 +20,15 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/recognize_court', methods=['POST'])
 @cross_origin()
 def recognize_court():
-    json = request.get_json()
-    encoded_frame = json.get('frame')
+    try:
+        json = request.get_json()
+        encoded_frame = json.get('frame')
 
-    frame = image_service.load_image_from_base64(encoded_frame)
-    court = court_recognition_service.get_court(frame)
+        frame = image_service.load_image_from_base64(encoded_frame)
+        court = court_recognition_service.get_court(frame)
+    except Exception as e:
+        print(e)
+        court = None
 
     return flask.jsonify({
         'court': court
@@ -34,18 +38,24 @@ def recognize_court():
 @app.route('/analyze_video', methods=['POST'])
 @cross_origin()
 def analyze_video():
-    json = request.get_json()
+    try:
+        json = request.get_json()
 
-    encoded_video = json.get('video')
-    court_coordinates = json.get('court')
+        encoded_video = json.get('video')
+        court_coordinates = json.get('court')
 
-    video_analyzer = VideoAnalyzer(
-        pose_extraction_service,
-        stroke_recognition_manager_factory,
-        encoded_video,
-        court_coordinates
-    )
-    analysis_output = video_analyzer.analyze_video()
-    video_analyzer.teardown()
+        video_analyzer = VideoAnalyzer(
+            pose_extraction_service,
+            stroke_recognition_manager_factory,
+            encoded_video,
+            court_coordinates
+        )
+        analysis_output = video_analyzer.analyze_video()
+        video_analyzer.teardown()
+    except Exception as e:
+        analysis_output = {
+            'players_data': None,
+            'fps': None
+        }
 
     return flask.jsonify(analysis_output)
