@@ -8,7 +8,7 @@ from badminton_cv_utils.utils.pose_utils import get_normalized_pose
 
 class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
     MAX_QUEUE_SIZE = 10
-    DENSE_MODEL_PATH = '../../models/agg_model'
+    DENSE_MODEL_PATH = './models/agg_model'
 
     def __init__(self):
         pass
