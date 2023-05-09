@@ -1,14 +1,13 @@
 import flask
 from flask import Flask
 from flask import request
-from services.court_recognition_service import CourtRecognitionService
 from services.image_service import ImageService
 from services.pose_extraction.movenet_pose_extraction_service import MovenetPoseExtractionService
 from services.video_analyzer import VideoAnalyzer
 from services.stroke_recognition.stroke_recognition_manager_factory import DenseModelStrokeRecognitionManagerFactory
 from flask_cors import cross_origin
+from badminton_cv_utils.utils.corner_detector import detect_corners
 
-court_recognition_service = CourtRecognitionService()
 image_service = ImageService()
 pose_extraction_service = MovenetPoseExtractionService()
 stroke_recognition_manager_factory = DenseModelStrokeRecognitionManagerFactory()
@@ -25,7 +24,7 @@ def recognize_court():
         encoded_frame = json.get('frame')
 
         frame = image_service.load_image_from_base64(encoded_frame)
-        court = court_recognition_service.get_court(frame)
+        court = detect_corners(frame)
     except Exception as e:
         print(e)
         court = None
