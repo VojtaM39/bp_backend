@@ -25,6 +25,11 @@ def recognize_court():
 
         frame = image_service.load_image_from_base64(encoded_frame)
         court = detect_corners(frame)
+
+        height, width, _ = frame.shape
+        court = [[int(corner[0]) / width, int(corner[1]) / height] for corner in court]
+
+        return court
     except Exception as e:
         print(e)
         court = None
