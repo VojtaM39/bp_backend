@@ -53,6 +53,7 @@ def analyze_video():
         analysis_output = video_analyzer.analyze_video()
         video_analyzer.teardown()
     except Exception as e:
+        print(e)
         analysis_output = {
             'players_data': None,
             'fps': None

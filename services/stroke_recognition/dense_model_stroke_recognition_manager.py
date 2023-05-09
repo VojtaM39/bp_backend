@@ -5,6 +5,7 @@ from .stroke_recognition_manager import StrokeRecognitionManager
 import numpy as np
 from badminton_cv_utils.utils.pose_utils import get_normalized_pose
 
+
 class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
     MAX_QUEUE_SIZE = 10
     DENSE_MODEL_PATH = '../../models/agg_model'
@@ -28,7 +29,6 @@ class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
 
         return stroke
 
-
     def __evaluate_queue(self):
         input = []
         for player in self.queue:
@@ -40,4 +40,3 @@ class DenseModelStrokeRecognitionManager(StrokeRecognitionManager):
         input = tf.reshape(np.array(input), shape=(1, len(input)))
         pred = self.model(input, training=False)
         return int(np.argmax(pred))
-
